@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'zbek zxcvbn — Parol Tahlilchisi | BMI AT-62</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f4;
+    --bg3: #efefed;
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.2);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg2: #252523;
+      --bg3: #2e2e2b;
+      --text: #f0efea;
+      --text2: #a8a79f;
+      --text3: #6e6d68;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+
+  .page { max-width: 680px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .header-icon {
+    width: 56px; height: 56px;
+    background: #1D9E75;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .header-icon i { font-size: 28px; color: #fff; }
+  .header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+  .header p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .badge-uni {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 99px;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    color: var(--text2);
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-label i { font-size: 14px; }
+
+  /* Context grid */
+  .ctx-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media(max-width: 480px){ .ctx-grid { grid-template-columns: 1fr; } }
+
+  input[type=text], input[type=password] {
+    width: 100%;
+    font-size: 14px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  input[type=text]:focus, input[type=password]:focus {
+    border-color: #1D9E75;
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+  }
+
+  /* Password row */
+  .pw-row { display: flex; gap: 8px; }
+  .pw-row input { flex: 1; font-size: 16px; font-family: monospace; padding: 11px 14px; }
+  .pw-toggle {
+    padding: 0 14px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .pw-toggle:hover { background: var(--bg3); }
+  .pw-toggle i { font-size: 16px; }
+
+  /* Strength bar */
+  .bar-wrap {
+    height: 6px;
+    background: var(--bg2);
+    border-radius: 99px;
+    margin: 12px 0 10px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.35s ease, background 0.35s ease;
+    width: 0%;
+  }
+
+  /* Score row */
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .score-badge {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 99px;
+  }
+  .entropy-tag {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: monospace;
+  }
+
+  /* Crack times */
+  .crack-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .crack-item {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .crack-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .crack-val { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  /* Patterns */
+  .patterns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pat-chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 0.5px solid;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+  .pat-chip i { font-size: 13px; }
+
+  /* Warnings */
+  .warn-list { display: flex; flex-direction: column; gap: 6px; }
+  .warn-item {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: #FAEEDA;
+    border: 0.5px solid #FAC775;
+    color: #633806;
+    line-height: 1.5;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .warn-item i { flex-shrink: 0; margin-top: 1px; font-size: 15px; }
+  @media(prefers-color-scheme:dark){
+    .warn-item { background: #2a1f08; border-color: #7a5010; color: #FAC775; }
+  }
+
+  /* Recommendations */
+  .rec-list { display: flex; flex-direction: column; gap: 8px; }
+  .rec-card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+  }
+  .rec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+  .rec-pw {
+    font-family: monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .rec-strategy {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0F6E56;
+    margin-bottom: 3px;
+  }
+  .rec-why { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .copy-btn {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--bg3); }
+  .copy-btn i { font-size: 13px; }
+
+  /* Placeholder */
+  .placeholder {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text3);
+  }
+  .placeholder i { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
+  .placeholder p { font-size: 14px; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.8;
+  }
+  .footer a { color: #1D9E75; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  .hidden { display: none !important; }
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon"><i class="ti ti-shield-lock"></i></div>
+    <h1>O'zbek zxcvbn — Parol Tahlilchisi</h1>
+    <p>O'zbekcha lokalizatsiya qilingan parol kuchini baholash tizimi</p>
+    <span class="badge-uni">TDIU &middot; BMI AT-62 &middot; Samandar Soliyev</span>
+  </div>
+
+  <!-- Context Card -->
+  <div class="card">
+    <div class="section-label"><i class="ti ti-user"></i> Shaxsiy ma'lumot (ixtiyoriy)</div>
+    <div class="ctx-grid">
+      <input type="text" id="ctx-name" placeholder="Ismingiz (masalan: Samandar)">
+      <input type="text" id="ctx-surname" placeholder="Familiyangiz (masalan: Soliyev)">
+      <input type="text" id="ctx-year" placeholder="Tug'ilgan yil (masalan: 2004)">
+      <input type="text" id="ctx-city" placeholder="Shahar (masalan: Farg'ona)">
+    </div>
+  </div>
+
+  <!-- Password Card -->
+  <div class="card">
+    <div class="section-label"><i class="ti ti-lock"></i> Parolni kiriting</div>
+    <div class="pw-row">
+      <input type="password" id="pw-input" placeholder="Parolni shu yerga yozing..." autocomplete="off">
+      <button class="pw-toggle" id="toggle-btn" onclick="toggleVis()">
+        <i class="ti ti-eye" id="eye-icon"></i> Ko'rish
+      </button>
+    </div>
+    <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
+    <div class="score-row">
+      <span class="score-badge" id="score-badge" style="background:var(--bg2);color:var(--text3);">Parol kiriting</span>
+      <span class="entropy-tag" id="entropy-val"></span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+
+    <!-- Crack Times -->
+    <div class="card">
+      <div class="section-label"><i class="ti ti-clock"></i> Buzish vaqti taxmini</div>
+      <div class="crack-grid">
+        <div class="crack-item">
+          <div class="crack-label">Onlayn (limit bilan)</div>
+          <div class="crack-val" id="ct1"></div>
+        </div>
+        <div class="crack-item">
+          <div class="crack-label">Onlayn (limitsiz)</div>
+          <div class="crack-val" id="ct2"></div>
+        </div>
+        <div class="crack-item">
+          <div class="crack-label">Oflayn — bcrypt/scrypt</div>
+          <div class="crack-val" id="ct3"></div>
+        </div>
+        <div class="crack-item">
+          <div class="crack-label">Oflayn — GPU (MD5)</div>
+          <div class="crack-val" id="ct4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detected Patterns -->
+    <div class="card hidden" id="pat-card">
+      <div class="section-label"><i class="ti ti-search"></i> Aniqlangan zaifliklar</div>
+      <div class="patterns" id="pat-list"></div>
+    </div>
+
+    <!-- Warnings -->
+    <div class="card hidden" id="warn-card">
+      <div class="section-label"><i class="ti ti-alert-triangle"></i> Ogohlantirishlar</div>
+      <div class="warn-list" id="warn-list"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card">
+      <div class="section-label"><i class="ti ti-shield-check"></i> Xavfsiz muqobil parollar</div>
+      <div class="rec-list" id="rec-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Placeholder -->
+  <div id="placeholder">
+    <i class="ti ti-lock-open"></i>
+    <p>Parol kiriting — real vaqtda tahlil boshlanadi</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Toshkent Davlat Iqtisodiyot Universiteti &middot; Raqamli iqtisodiyot va axborot texnologiyalari fakulteti</p>
+    <p>Axborot tizimlari va texnologiyalari &middot; AT-62 guruh &middot; 2026</p>
+    <p style="margin-top:6px">
+      <a href="https://github.com/Samandar0421/uzbek-zxcvbn-dl" target="_blank">
+        <i class="ti ti-brand-github" style="vertical-align:-2px"></i> GitHub: uzbek-zxcvbn-dl
+      </a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+const DICT=["ali","alijon","alisher","jasur","jamshid","javlon","sardor","samandar","sanjar","sherzod","shohruh","bobur","botir","behruz","bekzod","bahodir","baxtiyor","dilshod","doniyor","davron","eldor","elbek","farrux","firdavs","hamza","hamid","ilhom","jahongir","komil","laziz","mansur","murod","nodir","oybek","parviz","qodir","ravshan","rustam","rauf","salim","sohibjon","soliyev","temur","tohir","ulugbek","umid","xurshid","yorqin","yusuf","zafar","aziza","dilfuza","dilnoza","dildora","feruza","fotima","gulnora","gulbahor","hilola","kamola","lobar","lola","malika","maftuna","munira","mohira","nilufar","oydin","sarvinoz","saodat","shahnoza","shahlo","sitora","sevinch","umida","yulduz","zulfiya","zuhra","abdullayev","ahmedov","akbarov","alimov","botirov","choriyev","eshmatov","hasanov","ismoilov","jurayev","karimov","mahmudov","mirzayev","nazarov","ortiqov","qodirov","rahimov","salimov","sobirov","sultonov","toshmatov","tursunov","umarov","usmonov","yusupov","zaripov","salom","assalomu","rahmat","oila","ona","ota","aka","uka","opa","sevgi","muhabbat","hayot","umid","parol","login","kalit","bismillah","alloh","namoz","telefon","internet","ucell","beeline","uzmobile","agrobank","kapitalbank","hamkorbank","pakhtakor","nasaf","bunyodkor","locomotiv","toshkent","samarkand","buxoro","namangan","andijon","fargona","uzbekistan","ozbekiston","palov","somsa","lagmon","qwerty","qwert","werty","asdfg","zxcvb","12345","123456","1234567","12345678","111111","1234","0000","1111"];
+const DR={};DICT.forEach((w,i)=>DR[w]=i+1);
+const LEET={"@":["a","o"],"4":["a"],"3":["e"],"1":["i","l"],"!":["i","l"],"0":["o"],"5":["s"],"$":["s"],"7":["t"],"6":["g","b"],"8":["b"],"9":["g"],"2":["z"]};
+function lg(x){return x>0?Math.log2(x):0;}
+function deob(token){
+  const res=new Set();
+  function ex(chars,idx,cur){
+    if(idx===chars.length){res.add(cur);return;}
+    const c=chars[idx].toLowerCase();
+    ex(chars,idx+1,cur+c);
+    if(LEET[c])LEET[c].forEach(p=>ex(chars,idx+1,cur+p));
+  }
+  ex(token.split(''),0,'');
+  return[...res];
+}
+function csz(pw){
+  let s=0;
+  if(/[a-z]/.test(pw))s+=26;
+  if(/[A-Z]/.test(pw))s+=26;
+  if(/\d/.test(pw))s+=10;
+  if(/[^a-zA-Z0-9]/.test(pw))s+=33;
+  return Math.max(s,1);
+}
+function analyze(pw,ctx){
+  const M=[];const n=pw.length;const pwl=pw.toLowerCase();
+  for(let i=0;i<n;i++)for(let j=i+1;j<=n;j++){const t=pwl.slice(i,j);if(DR[t])M.push({pattern:'dictionary',token:pw.slice(i,j),i,j:j-1,entropy:lg(DR[t]),word:t});}
+  for(let i=0;i<n;i++)for(let j=i+2;j<=n;j++){const t=pw.slice(i,j);if(![...t.toLowerCase()].some(c=>LEET[c]))continue;deob(t).forEach(c=>{if(DR[c]&&c!==t.toLowerCase()){const lc=[...t.toLowerCase()].filter(c=>LEET[c]).length;M.push({pattern:'leet',token:t,i,j:j-1,entropy:lg(DR[c])+lg(Math.pow(2,lc||1)),word:c});}});}
+  [...pw.matchAll(/(?<!\d)(19[5-9]\d|20[0-2]\d)(?!\d)/g)].forEach(m=>M.push({pattern:'date',token:m[0],i:m.index,j:m.index+m[0].length-1,entropy:lg(77),year:parseInt(m[0])}));
+  [...pw.matchAll(/(?<!\d)([5-9]\d|0\d|1\d|2[0-6])(?!\d)/g)].forEach(m=>M.push({pattern:'date',token:m[0],i:m.index,j:m.index+m[0].length-1,entropy:lg(77)+1}));
+  ["qwerty","qwert","werty","asdfg","sdfgh","zxcvb","12345","123456","1234567","qweasd"].forEach(seq=>{const pos=pwl.indexOf(seq);if(pos!==-1)M.push({pattern:'spatial',token:pw.slice(pos,pos+seq.length),i:pos,j:pos+seq.length-1,entropy:lg(seq.length)+1});});
+  Object.entries(ctx).forEach(([key,val])=>{if(!val||val.length<2)return;const v=val.toLowerCase();const pos=pwl.indexOf(v);if(pos!==-1)M.push({pattern:'context',token:pw.slice(pos,pos+v.length),i:pos,j:pos+v.length-1,entropy:lg(v.length)*0.5,ctx:key});});
+  const cs=csz(pw);const up=new Array(n+1).fill(0);const bp=new Array(n+1).fill(null);
+  for(let k=1;k<=n;k++){up[k]=up[k-1]+lg(cs);M.forEach(m=>{if(m.j+1!==k)return;const c=up[m.i]+m.entropy;if(c<up[k]){up[k]=c;bp[k]=m;}});}
+  const opt=[];let k=n;
+  while(k>0){const m=bp[k];if(m){opt.push(m);k=m.i;}else{opt.push({pattern:'bruteforce',token:pw[k-1],i:k-1,j:k-1,entropy:lg(cs)});k--;}}
+  opt.reverse();
+  return{entropy:Math.min(up[n],n*lg(cs)),optimal:opt};
+}
+function fmt(s){
+  if(s<1)return"< 1 soniya";
+  if(s<60)return Math.round(s)+" soniya";
+  if(s<3600)return Math.round(s/60)+" daqiqa";
+  if(s<86400)return Math.round(s/3600)+" soat";
+  if(s<2592000)return Math.round(s/86400)+" kun";
+  if(s<31536000)return Math.round(s/2592000)+" oy";
+  if(s<3153600000)return Math.round(s/31536000)+" yil";
+  return"Asrlar";
+}
+function ct(e){const g=Math.pow(2,e);return{a:fmt(g/100),b:fmt(g/10000),c:fmt(g/1000000),d:fmt(g/100000000000)};}
+function scoreE(e){if(e<25)return 0;if(e<40)return 1;if(e<55)return 2;if(e<70)return 3;return 4;}
+
+const SC=[
+  {bg:'#FCEBEB',color:'#A32D2D',bar:'#E24B4A',label:'Juda zaif'},
+  {bg:'#FAEEDA',color:'#854F0B',bar:'#EF9F27',label:'Zaif'},
+  {bg:'#FFF8E1',color:'#5D4037',bar:'#BA7517',label:"O'rtacha"},
+  {bg:'#EAF3DE',color:'#3B6D11',bar:'#639922',label:'Kuchli'},
+  {bg:'#E1F5EE',color:'#0F6E56',bar:'#1D9E75',label:'Juda kuchli'},
+];
+const PS={
+  dictionary:{bg:'#FCEBEB',color:'#A32D2D',border:'#F09595',icon:'ti-book'},
+  leet:{bg:'#FAEEDA',color:'#633806',border:'#FAC775',icon:'ti-code'},
+  date:{bg:'#E6F1FB',color:'#0C447C',border:'#85B7EB',icon:'ti-calendar'},
+  spatial:{bg:'#EEEDFE',color:'#3C3489',border:'#AFA9EC',icon:'ti-keyboard'},
+  context:{bg:'#FBEAF0',color:'#72243E',border:'#ED93B1',icon:'ti-user'},
+};
+const CL={first_name:"ism",last_name:"familiya",birth_year:"tug'ilgan yil",city:"shahar"};
+const SW=["Arxiv","Velosiped","Barqaror","Doimiy","Foydali","Gajak","Hamisha","Istiqlol","Jadval","Kerakli","Lozim","Mavsum","Noyob","Oyoq","Pishiq","Qattiq","Uchqur","Tezkor","Sokin","Ravshan"];
+const SP=["!","@","#","$","%","&","*","?","~","^"];
+const SS=["-","_",".","+"," ="];
+function ri(a){return a[Math.floor(Math.random()*a.length)];}
+function rs(n){const a="ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";return Array.from({length:n},()=>a[Math.floor(Math.random()*a.length)]).join('');}
+function mangle(s){if(!s||s.length<2)return s;const v=s.toLowerCase().split('');v[0]=v[0].toUpperCase();const mid=Math.floor(v.length/2);if(v[mid])v[mid]=v[mid].toUpperCase();v.splice(mid,0,String(Math.floor(Math.random()*10)));return v.join('');}
+function genRecs(ctx){
+  const sep=ri(SS);const w3=[ri(SW),ri(SW),ri(SW)];
+  const r1=w3.join(sep)+sep+rs(3)+ri(SP);
+  const vals=Object.values(ctx).filter(v=>v&&v.length>=3);
+  const base=vals.length?vals[Math.floor(Math.random()*vals.length)]:ri(SW);
+  const r2=mangle(base)+ri(SP)+ri(SP)+rs(5);
+  const al="ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*?";
+  const r3=Array.from({length:16},()=>al[Math.floor(Math.random()*al.length)]).join('');
+  return[
+    {pw:r1,strategy:"Passphrase — 3 ta kuchli so'z",why:"Bog'liq bo'lmagan so'zlar kombinatsiyasi lug'at hujumlariga juda chidamli. Eslab qolish oson."},
+    {pw:r2,strategy:"Shaxsiy asos + yuqori entropiya",why:"Sizning kontekstingizdan olingan, to'liq o'zgartirilgan va tasodifiy belgilar qo'shilgan."},
+    {pw:r3,strategy:"Kriptografik tasodifiy (eng kuchli)",why:"Hech qanday naqsh yo'q. Parol menejerida (Bitwarden, KeePass) saqlang."},
+  ];
+}
+function getCtx(){return{first_name:document.getElementById('ctx-name').value.trim(),last_name:document.getElementById('ctx-surname').value.trim(),birth_year:document.getElementById('ctx-year').value.trim(),city:document.getElementById('ctx-city').value.trim()};}
+
+let timer;
+document.getElementById('pw-input').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(run,120);});
+
+function run(){
+  const pw=document.getElementById('pw-input').value;
+  const placeholder=document.getElementById('placeholder');
+  const results=document.getElementById('results');
+  if(!pw){
+    placeholder.classList.remove('hidden');results.classList.add('hidden');
+    document.getElementById('bar-fill').style.width='0%';
+    const b=document.getElementById('score-badge');b.textContent='Parol kiriting';b.style.background='var(--bg2)';b.style.color='var(--text3)';
+    document.getElementById('entropy-val').textContent='';return;
+  }
+  const ctx=getCtx();
+  const{entropy,optimal}=analyze(pw,ctx);
+  const score=scoreE(entropy);
+  const sc=SC[score];
+  const times=ct(entropy);
+  placeholder.classList.add('hidden');results.classList.remove('hidden');
+  document.getElementById('bar-fill').style.width=Math.min(100,((score+1)/5)*100)+'%';
+  document.getElementById('bar-fill').style.background=sc.bar;
+  const b=document.getElementById('score-badge');b.textContent=sc.label;b.style.background=sc.bg;b.style.color=sc.color;
+  document.getElementById('entropy-val').textContent=entropy.toFixed(1)+' bit';
+  document.getElementById('ct1').textContent=times.a;
+  document.getElementById('ct2').textContent=times.b;
+  document.getElementById('ct3').textContent=times.c;
+  document.getElementById('ct4').textContent=times.d;
+
+  const pats=optimal.filter(m=>m.pattern!=='bruteforce');
+  const patCard=document.getElementById('pat-card');
+  const patList=document.getElementById('pat-list');
+  if(pats.length){
+    patCard.classList.remove('hidden');
+    patList.innerHTML=pats.map(m=>{
+      const s=PS[m.pattern]||{bg:'#F1EFE8',color:'#5F5E5A',border:'#B4B2A9',icon:'ti-alert-circle'};
+      const d=m.word?' → '+m.word:m.ctx?' ('+( CL[m.ctx]||m.ctx)+')':'';
+      return`<span class="pat-chip" style="background:${s.bg};color:${s.color};border-color:${s.border}"><i class="ti ${s.icon}"></i>${m.token}${d}</span>`;
+    }).join('');
+  } else patCard.classList.add('hidden');
+
+  const warns=[];
+  if(score<=1)warns.push('Bu parol '+(score===0?'JUDA ZAIF':'ZAIF')+'! Uni hoziroq o\'zgartiring.');
+  pats.forEach(m=>{
+    if(m.pattern==='dictionary')warns.push('"'+m.word+'" — o\'zbek lug\'atidagi keng tarqalgan so\'z. Lug\'at hujumi orqali bir zumda topiladi.');
+    else if(m.pattern==='leet')warns.push('"'+m.token+'" → "'+m.word+'": Leet-speak (harf→belgi) zamonaviy cracker dasturlariga to\'siq emas.');
+    else if(m.pattern==='date')warns.push('Parolda yil/sana ('+m.token+') aniqlandi — ijtimoiy muhandislik hujumlari uchun birinchi sinov ob\'ekti.');
+    else if(m.pattern==='spatial')warns.push('"'+m.token+'" — klaviatura yo\'li naqshi. Barcha bunday ketma-ketliklar hujum lug\'atlarida mavjud.');
+    else if(m.pattern==='context')warns.push('Shaxsiy ma\'lumot ('+(CL[m.ctx]||m.ctx)+') parolda ishlatilgan! Ijtimoiy tarmoqlar orqali osongina topiladi.');
+  });
+  const warnCard=document.getElementById('warn-card');
+  const warnList=document.getElementById('warn-list');
+  if(warns.length){
+    warnCard.classList.remove('hidden');
+    warnList.innerHTML=warns.map(w=>`<div class="warn-item"><i class="ti ti-alert-triangle"></i><span>${w}</span></div>`).join('');
+  } else warnCard.classList.add('hidden');
+
+  const recs=genRecs(ctx);
+  document.getElementById('rec-list').innerHTML=recs.map((r,i)=>`
+    <div class="rec-card">
+      <div class="rec-header">
+        <span class="rec-pw">${r.pw}</span>
+        <button class="copy-btn" onclick="copyPw('${r.pw}',this)"><i class="ti ti-copy"></i> Ko'chir</button>
+      </div>
+      <div class="rec-strategy">${i+1}. ${r.strategy}</div>
+      <div class="rec-why">${r.why}</div>
+    </div>`).join('');
+}
+
+function copyPw(pw,btn){
+  navigator.clipboard.writeText(pw).then(()=>{
+    btn.innerHTML='<i class="ti ti-check"></i> Nusxalandi!';
+    setTimeout(()=>{btn.innerHTML='<i class="ti ti-copy"></i> Ko\'chir';},1500);
+  });
+}
+
+function toggleVis(){
+  const inp=document.getElementById('pw-input');
+  const icon=document.getElementById('eye-icon');
+  const btn=document.getElementById('toggle-btn');
+  if(inp.type==='password'){
+    inp.type='text';icon.className='ti ti-eye-off';btn.innerHTML='<i class="ti ti-eye-off" id="eye-icon"></i> Yashir';
+  } else {
+    inp.type='password';btn.innerHTML='<i class="ti ti-eye" id="eye-icon"></i> Ko\'rish';
+  }
+}
+</script>
+</body>
+</html>
